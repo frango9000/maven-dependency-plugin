@@ -365,18 +365,6 @@ under the License.
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>com.diffplug.spotless</groupId>
-          <artifactId>spotless-maven-plugin</artifactId>
-          <configuration>
-            <java>
-              <palantirJavaFormat combine.self="override">
-                <version>2.38.0</version>
-              </palantirJavaFormat>
-            </java>
-          </configuration>
-        </plugin>
-
-        <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
           <configuration>
