@@ -23,7 +23,7 @@ under the License.
   <parent>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-plugins</artifactId>
-    <version>40</version>
+    <version>41</version>
     <relativePath />
   </parent>
 
@@ -87,6 +87,7 @@ under the License.
   </distributionManagement>
 
   <properties>
+    <maven.compiler.release>8</maven.compiler.release>
     <mavenVersion>3.2.5</mavenVersion>
     <jettyVersion>9.4.53.v20231009</jettyVersion>
     <pluginTestingVersion>3.3.0</pluginTestingVersion>
@@ -363,6 +364,18 @@ under the License.
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <configuration>
+            <java>
+              <palantirJavaFormat combine.self="override">
+                <version>2.38.0</version>
+              </palantirJavaFormat>
+            </java>
+          </configuration>
+        </plugin>
+
         <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
