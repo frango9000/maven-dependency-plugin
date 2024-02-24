@@ -29,7 +29,7 @@ under the License.
 
   <groupId>io.github.frango9000</groupId>
   <artifactId>maven-dependency-plugin</artifactId>
-  <version>3.6.2-SNAPSHOT</version>
+  <version>3.6.2.0</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Dependency Plugin</name>
@@ -439,6 +439,45 @@ under the License.
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.40.0</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>copy-and-rename-files</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <target>
+                <!-- Copy and rename JAR -->
+                <copy file="${project.build.directory}/${project.build.finalName}.jar" tofile="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.jar" />
+                <checksum algorithm="md5" file="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.jar" property="md5checksumJar" />
+                <echo file="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.jar.md5" message="${md5checksumJar}" />
+                <checksum algorithm="sha1" file="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.jar" property="sha1checksumJar" />
+                <echo file="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.jar.sha1" message="${sha1checksumJar}" />
+
+                <!-- Copy and rename POM -->
+                <copy file="${project.basedir}/pom.xml" tofile="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.pom" />
+                <checksum algorithm="md5" file="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.pom" property="md5checksumPom" />
+                <echo file="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.pom.md5" message="${md5checksumPom}" />
+                <checksum algorithm="sha1" file="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.pom" property="sha1checksumPom" />
+                <echo file="${project.build.directory}/deployments/io/github/frango9000/maven-dependency-plugin/${project.version}/${project.artifactId}-${project.version}.pom.sha1" message="${sha1checksumPom}" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 
