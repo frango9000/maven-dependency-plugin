@@ -29,7 +29,7 @@ under the License.
 
   <groupId>io.github.frango9000</groupId>
   <artifactId>maven-dependency-plugin</artifactId>
-  <version>3.6.2.2-SNAPSHOT</version>
+  <version>3.6.2.2</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Dependency Plugin</name>
