@@ -88,6 +88,54 @@ public class TestGoOfflineMojo extends AbstractDependencyMojoTestCase {
         assertTrue(results.isEmpty());
     }
 
+    public void testGoOfflineFilterExcludeArtifactIds() throws Exception {
+        File testPom = new File(getBasedir(), "target/test-classes/unit/resolve-test/plugin-config.xml");
+        GoOfflineMojo mojo = (GoOfflineMojo) lookupMojo("go-offline", testPom);
+        MavenProject project = mojo.getProject();
+        MavenSession session = newMavenSession(project);
+        setVariableValueToObject(mojo, "session", session);
+        setVariableValueToObject(mojo, "excludeArtifactIds", "tools");
+
+        project.setDependencies(createArtifacts(createDependencies()));
+
+        mojo.doExecute();
+        Set<Artifact> results = mojo.getDependencies();
+
+        assertTrue(results.isEmpty());
+    }
+
+    public void testGoOfflineFilterExcludeGroupIds() throws Exception {
+        File testPom = new File(getBasedir(), "target/test-classes/unit/resolve-test/plugin-config.xml");
+        GoOfflineMojo mojo = (GoOfflineMojo) lookupMojo("go-offline", testPom);
+        MavenProject project = mojo.getProject();
+        MavenSession session = newMavenSession(project);
+        setVariableValueToObject(mojo, "session", session);
+        setVariableValueToObject(mojo, "excludeGroupIds", "com.sun");
+
+        project.setDependencies(createArtifacts(createDependencies()));
+
+        mojo.doExecute();
+        Set<Artifact> results = mojo.getDependencies();
+
+        assertTrue(results.isEmpty());
+    }
+
+    public void testGoOfflineFilterExcludeTypes() throws Exception {
+        File testPom = new File(getBasedir(), "target/test-classes/unit/resolve-test/plugin-config.xml");
+        GoOfflineMojo mojo = (GoOfflineMojo) lookupMojo("go-offline", testPom);
+        MavenProject project = mojo.getProject();
+        MavenSession session = newMavenSession(project);
+        setVariableValueToObject(mojo, "session", session);
+        setVariableValueToObject(mojo, "excludeTypes", "jar");
+
+        project.setDependencies(createArtifacts(createDependencies()));
+
+        mojo.doExecute();
+        Set<Artifact> results = mojo.getDependencies();
+
+        assertTrue(results.isEmpty());
+    }
+
     private List<Dependency> createDependencies() {
         final Dependency comSunTools = new Dependency();
         comSunTools.setGroupId("com.sun");
