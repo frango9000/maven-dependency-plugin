@@ -26,7 +26,6 @@ jobs:
     name: Verify
     uses: apache/maven-gh-actions-shared/.github/workflows/maven-verify.yml@v3
     with:
-      ff-run: false
       jdk-matrix: '[ "8", "11", "17", "21" ]'
       os-matrix: '[ "ubuntu-latest" ]'
       maven-matrix: '[ "3.9.6" ]'
