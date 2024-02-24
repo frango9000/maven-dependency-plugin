@@ -27,12 +27,13 @@ under the License.
     <relativePath />
   </parent>
 
+  <groupId>io.github.frango9000</groupId>
   <artifactId>maven-dependency-plugin</artifactId>
   <version>3.6.2-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>Apache Maven Dependency Plugin</name>
-  <description>Provides utility goals to work with dependencies like copying, unpacking, analyzing, resolving and many more.</description>
+  <description>Provides utility goals to work with dependencies like copying, unpacking, analyzing, resolving and many more. Forked version that fixes filters in go-offline mojo</description>
 
   <contributors>
     <contributor>
@@ -66,25 +67,19 @@ under the License.
   </prerequisites>
 
   <scm>
-    <connection>scm:git:https://gitbox.apache.org/repos/asf/maven-dependency-plugin.git</connection>
-    <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/maven-dependency-plugin.git</developerConnection>
-    <tag>maven-dependency-plugin-3.5.0</tag>
-    <url>https://github.com/apache/maven-dependency-plugin/tree/${project.scm.tag}</url>
+    <connection>scm:git@github.com:frango9000/maven-dependency-plugin.git</connection>
+    <developerConnection>scm:git@github.com:frango9000/maven-dependency-plugin.git</developerConnection>
+    <tag>maven-dependency-plugin-3.6.2</tag>
+    <url>https://github.com/frango9000/maven-dependency-plugin/tree/${project.scm.tag}</url>
   </scm>
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://issues.apache.org/jira/browse/MDEP</url>
+    <system>GitHub</system>
+    <url>https://github.com/frango9000/maven-dependency-plugin/issues</url>
   </issueManagement>
   <ciManagement>
-    <system>Jenkins</system>
-    <url>https://ci-maven.apache.org/job/Maven/job/maven-box/job/maven-dependency-plugin/</url>
+    <system>GitHub Actions</system>
+    <url>https://github.com/frango9000/maven-dependency-plugin/actions/</url>
   </ciManagement>
-  <distributionManagement>
-    <site>
-      <id>apache.website</id>
-      <url>scm:svn:https://svn.apache.org/repos/asf/maven/website/components/${maven.site.path}</url>
-    </site>
-  </distributionManagement>
 
   <properties>
     <mavenVersion>3.2.5</mavenVersion>
