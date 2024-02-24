@@ -18,8 +18,6 @@
  */
 package org.apache.maven.plugins.dependency.resolvers;
 
-import static java.util.Collections.unmodifiableSet;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -49,6 +47,8 @@ import org.apache.maven.shared.transfer.dependencies.DefaultDependableCoordinate
 import org.apache.maven.shared.transfer.dependencies.DependableCoordinate;
 import org.apache.maven.shared.transfer.dependencies.resolve.DependencyResolverException;
 
+import static java.util.Collections.unmodifiableSet;
+
 /**
  * Goal that resolves all project dependencies, including plugins and reports and their dependencies.
  *
@@ -66,6 +66,7 @@ public class GoOfflineMojo extends AbstractResolveMojo {
      */
     @Parameter(property = "includeParents", defaultValue = "false")
     private boolean includeParents;
+
     private Set<Artifact> dependencies;
 
     /**
@@ -104,16 +105,14 @@ public class GoOfflineMojo extends AbstractResolveMojo {
      * @return set of resolved dependency artifacts.
      * @throws DependencyResolverException in case of an error while resolving the artifacts.
      */
-    protected Set<Artifact> resolveDependencyArtifacts()
-            throws DependencyResolverException {
+    protected Set<Artifact> resolveDependencyArtifacts() throws DependencyResolverException {
         Collection<Dependency> dependencies = getProject().getDependencies();
         final FilterDependencies filterDependencies = new FilterDependencies(
                 new ArtifactIdFilter(this.includeArtifactIds, this.excludeArtifactIds),
                 new GroupIdFilter(this.includeGroupIds, this.excludeGroupIds),
                 new ScopeFilter(this.includeScope, this.excludeScope),
                 new ClassifierFilter(this.includeClassifiers, this.excludeClassifiers),
-                new TypeFilter(this.includeTypes, this.excludeTypes)
-        );
+                new TypeFilter(this.includeTypes, this.excludeTypes));
         dependencies = filterDependencies.filter(dependencies);
 
         Set<DependableCoordinate> dependableCoordinates = dependencies.stream()
@@ -136,7 +135,6 @@ public class GoOfflineMojo extends AbstractResolveMojo {
         for (ArtifactRepository repo : buildingRequest.getRemoteRepositories()) {
             getLog().debug(repo.getId() + " (" + repo.getUrl() + ")");
         }
-
 
         final Set<Artifact> results = new HashSet<>();
 
@@ -219,5 +217,4 @@ public class GoOfflineMojo extends AbstractResolveMojo {
     protected Set<Artifact> getDependencies() {
         return unmodifiableSet(dependencies);
     }
-
 }

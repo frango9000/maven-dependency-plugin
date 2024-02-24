@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.maven.plugins.dependency.filters;
 
 /*
@@ -19,11 +37,11 @@ package org.apache.maven.plugins.dependency.filters;
  * under the License.
  */
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -31,16 +49,13 @@ import static java.util.Collections.singletonList;
 /**
  * Filters dependencies by scope.
  */
-public class ScopeFilter extends AbstractDependencyFilter
-{
-    public ScopeFilter( String includeScope, String excludeScope )
-    {
-        super( includeScope, excludeScope );
+public class ScopeFilter extends AbstractDependencyFilter {
+    public ScopeFilter(String includeScope, String excludeScope) {
+        super(includeScope, excludeScope);
     }
 
     @Override
-    protected String getContainsProperty( Dependency dependency )
-    {
+    protected String getContainsProperty(Dependency dependency) {
         return dependency.getScope();
     }
 
@@ -55,27 +70,20 @@ public class ScopeFilter extends AbstractDependencyFilter
      * @return Set with excluded scopes
      */
     @Override
-    protected Set<String> splitExcludeIds( String scope )
-    {
-        switch ( scope )
-        {
+    protected Set<String> splitExcludeIds(String scope) {
+        switch (scope) {
             case Artifact.SCOPE_RUNTIME:
-                return new HashSet<>( asList(
-                        Artifact.SCOPE_RUNTIME,
-                        Artifact.SCOPE_COMPILE ) );
+                return new HashSet<>(asList(Artifact.SCOPE_RUNTIME, Artifact.SCOPE_COMPILE));
             case Artifact.SCOPE_COMPILE:
-                return new HashSet<>( asList(
-                        Artifact.SCOPE_COMPILE,
-                        Artifact.SCOPE_PROVIDED,
-                        Artifact.SCOPE_SYSTEM ) );
+                return new HashSet<>(asList(Artifact.SCOPE_COMPILE, Artifact.SCOPE_PROVIDED, Artifact.SCOPE_SYSTEM));
             case Artifact.SCOPE_TEST:
-                throw new IllegalArgumentException( "invalid exclude scope: test. Did you mean compile?" );
+                throw new IllegalArgumentException("invalid exclude scope: test. Did you mean compile?");
             case Artifact.SCOPE_PROVIDED:
-                return new HashSet<>( singletonList( Artifact.SCOPE_PROVIDED ) );
+                return new HashSet<>(singletonList(Artifact.SCOPE_PROVIDED));
             case Artifact.SCOPE_SYSTEM:
-                return new HashSet<>( singletonList( Artifact.SCOPE_SYSTEM ) );
+                return new HashSet<>(singletonList(Artifact.SCOPE_SYSTEM));
             default:
-                throw new IllegalArgumentException( "Invalid Scope: " + scope );
+                throw new IllegalArgumentException("Invalid Scope: " + scope);
         }
     }
 
@@ -90,33 +98,25 @@ public class ScopeFilter extends AbstractDependencyFilter
      * @return set with included scopes
      */
     @Override
-    protected Set<String> splitIncludeIds( String scope )
-    {
-        switch ( scope )
-        {
+    protected Set<String> splitIncludeIds(String scope) {
+        switch (scope) {
             case Artifact.SCOPE_RUNTIME:
-                return new HashSet<>( asList(
-                        Artifact.SCOPE_RUNTIME,
-                        Artifact.SCOPE_COMPILE ) );
+                return new HashSet<>(asList(Artifact.SCOPE_RUNTIME, Artifact.SCOPE_COMPILE));
             case Artifact.SCOPE_COMPILE:
-                return new HashSet<>( asList(
-                        Artifact.SCOPE_COMPILE,
-                        Artifact.SCOPE_PROVIDED,
-                        Artifact.SCOPE_SYSTEM ) );
+                return new HashSet<>(asList(Artifact.SCOPE_COMPILE, Artifact.SCOPE_PROVIDED, Artifact.SCOPE_SYSTEM));
             case Artifact.SCOPE_TEST:
-                return new HashSet<>( asList(
+                return new HashSet<>(asList(
                         Artifact.SCOPE_COMPILE,
                         Artifact.SCOPE_PROVIDED,
                         Artifact.SCOPE_SYSTEM,
                         Artifact.SCOPE_TEST,
-                        Artifact.SCOPE_RUNTIME ) );
+                        Artifact.SCOPE_RUNTIME));
             case Artifact.SCOPE_PROVIDED:
-                return new HashSet<>( singletonList( Artifact.SCOPE_PROVIDED ) );
+                return new HashSet<>(singletonList(Artifact.SCOPE_PROVIDED));
             case Artifact.SCOPE_SYSTEM:
-                return new HashSet<>( singletonList( Artifact.SCOPE_SYSTEM ) );
+                return new HashSet<>(singletonList(Artifact.SCOPE_SYSTEM));
             default:
-                throw new IllegalArgumentException( "Invalid Scope: " + scope );
+                throw new IllegalArgumentException("Invalid Scope: " + scope);
         }
-
     }
 }
