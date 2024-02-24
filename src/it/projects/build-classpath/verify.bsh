@@ -34,6 +34,8 @@ expected.add( "maven-model-2.0.6.jar" );
 expected.add( "plexus-utils-1.4.1.jar" );
 expected.add( "plexus-container-default-1.0-alpha-9-stable-1.jar" );
 expected.add( "junit-3.8.1.jar" );
+// dependency with classifier in pom
+expected.add( "maven-project-2.0.6-sources.jar" );
 
 System.out.println( "Checking classpath... " );
 System.out.println( "Actual  : " + actual );

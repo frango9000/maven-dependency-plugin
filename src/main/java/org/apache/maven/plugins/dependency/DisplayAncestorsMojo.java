@@ -1,5 +1,3 @@
-package org.apache.maven.plugins.dependency;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package org.apache.maven.plugins.dependency;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,19 +16,18 @@ package org.apache.maven.plugins.dependency;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
+package org.apache.maven.plugins.dependency;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Displays all ancestor POMs of the project. This may be useful in a continuous integration system where you want to
@@ -39,50 +36,37 @@ import java.util.Locale;
  * @author Mirko Friedenhagen
  * @since 2.9
  */
-@Mojo( name = "display-ancestors", threadSafe = true, requiresProject = true, defaultPhase = LifecyclePhase.VALIDATE )
-public class DisplayAncestorsMojo
-    extends AbstractMojo
-{
+@Mojo(name = "display-ancestors", threadSafe = true, requiresProject = true, defaultPhase = LifecyclePhase.VALIDATE)
+public class DisplayAncestorsMojo extends AbstractMojo {
 
     /**
      * POM
      */
-    @Parameter( defaultValue = "${project}", readonly = true )
+    @Component
     private MavenProject project;
 
     @Override
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         final List<String> ancestors = collectAncestors();
 
-        if ( ancestors.isEmpty() )
-        {
-            getLog().info( "No Ancestor POMs!" );
+        if (ancestors.isEmpty()) {
+            getLog().info("No Ancestor POMs!");
+        } else {
+            getLog().info("Ancestor POMs: " + String.join(" <- ", ancestors));
         }
-        else
-        {
-            getLog().info( String.format( Locale.US, "Ancestor POMs: %s", StringUtils.join( ancestors, " <- " ) ) );
-        }
-
     }
 
-    private ArrayList<String> collectAncestors()
-    {
+    private ArrayList<String> collectAncestors() {
         final ArrayList<String> ancestors = new ArrayList<>();
 
         MavenProject currentAncestor = project.getParent();
-        while ( currentAncestor != null )
-        {
-            final String gav = String.format( Locale.US, "%s:%s:%s", currentAncestor.getGroupId(),
-                                              currentAncestor.getArtifactId(), currentAncestor.getVersion() );
-
-            ancestors.add( gav );
+        while (currentAncestor != null) {
+            ancestors.add(currentAncestor.getGroupId() + ":" + currentAncestor.getArtifactId() + ":"
+                    + currentAncestor.getVersion());
 
             currentAncestor = currentAncestor.getParent();
         }
 
         return ancestors;
     }
-
 }

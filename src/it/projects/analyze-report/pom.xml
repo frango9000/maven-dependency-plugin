@@ -53,19 +53,4 @@
       <version>2.0.6</version>
     </dependency>
   </dependencies>
-
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <configuration>
-           <outputXML>true</outputXML>
-           <scriptableOutput>true</scriptableOutput>
-           <verbose>true</verbose>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
 </project>

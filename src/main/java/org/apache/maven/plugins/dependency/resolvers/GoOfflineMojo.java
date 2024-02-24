@@ -1,6 +1,4 @@
-package org.apache.maven.plugins.dependency.resolvers;
-
-/* 
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -9,15 +7,16 @@ package org.apache.maven.plugins.dependency.resolvers;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
- * under the License.    
+ * under the License.
  */
+package org.apache.maven.plugins.dependency.resolvers;
 
 import static java.util.Collections.unmodifiableSet;
 
@@ -25,6 +24,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -56,17 +56,15 @@ import org.apache.maven.shared.transfer.dependencies.resolve.DependencyResolverE
  * @author Maarten Mulders
  * @since 2.0
  */
-@Mojo( name = "go-offline", requiresDependencyCollection = ResolutionScope.TEST, threadSafe = true )
-@Execute( goal = "resolve-plugins" )
-public class GoOfflineMojo
-    extends AbstractResolveMojo
-{
+@Mojo(name = "go-offline", requiresDependencyCollection = ResolutionScope.TEST, threadSafe = true)
+@Execute(goal = "resolve-plugins")
+public class GoOfflineMojo extends AbstractResolveMojo {
     /**
      * Include parent poms in the dependency resolution list.
      *
      * @since 3.1.2
      */
-    @Parameter( property = "includeParents", defaultValue = "false" )
+    @Parameter(property = "includeParents", defaultValue = "false")
     private boolean includeParents;
     private Set<Artifact> dependencies;
 
@@ -78,37 +76,26 @@ public class GoOfflineMojo
      * @throws MojoExecutionException with a message if an error occurs.
      */
     @Override
-    protected void doExecute()
-        throws MojoExecutionException
-    {
+    protected void doExecute() throws MojoExecutionException {
 
-        try
-        {
+        try {
             final Set<Artifact> plugins = resolvePluginArtifacts();
 
             this.dependencies = resolveDependencyArtifacts();
 
-            if ( !isSilent() )
-            {
-                for ( Artifact artifact : plugins )
-                {
-                    this.getLog().info( "Resolved plugin: "
-                            + DependencyUtil.getFormattedFileName( artifact, false ) );
+            if (!isSilent()) {
+                for (Artifact artifact : plugins) {
+                    this.getLog().info("Resolved plugin: " + DependencyUtil.getFormattedFileName(artifact, false));
                 }
 
-                for ( Artifact artifact : dependencies )
-                {
-                    this.getLog().info( "Resolved dependency: "
-                            + DependencyUtil.getFormattedFileName( artifact, false ) );
+                for (Artifact artifact : dependencies) {
+                    this.getLog().info("Resolved dependency: " + DependencyUtil.getFormattedFileName(artifact, false));
                 }
             }
 
+        } catch (DependencyResolverException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
         }
-        catch ( DependencyResolverException e )
-        {
-            throw new MojoExecutionException( e.getMessage(), e );
-        }
-
     }
 
     /**
@@ -118,68 +105,57 @@ public class GoOfflineMojo
      * @throws DependencyResolverException in case of an error while resolving the artifacts.
      */
     protected Set<Artifact> resolveDependencyArtifacts()
-            throws DependencyResolverException
-    {
+            throws DependencyResolverException {
         Collection<Dependency> dependencies = getProject().getDependencies();
         final FilterDependencies filterDependencies = new FilterDependencies(
-                new ArtifactIdFilter( this.includeArtifactIds, this.excludeArtifactIds ),
-                new GroupIdFilter( this.includeGroupIds, this.excludeGroupIds ),
-                new ScopeFilter( this.includeScope, this.excludeScope ),
-                new ClassifierFilter( this.includeClassifiers, this.excludeClassifiers ),
-                new TypeFilter( this.includeTypes, this.excludeTypes )
+                new ArtifactIdFilter(this.includeArtifactIds, this.excludeArtifactIds),
+                new GroupIdFilter(this.includeGroupIds, this.excludeGroupIds),
+                new ScopeFilter(this.includeScope, this.excludeScope),
+                new ClassifierFilter(this.includeClassifiers, this.excludeClassifiers),
+                new TypeFilter(this.includeTypes, this.excludeTypes)
         );
-        dependencies = filterDependencies.filter( dependencies );
+        dependencies = filterDependencies.filter(dependencies);
 
-        final Set<DependableCoordinate> dependableCoordinates = new HashSet<>();
+        Set<DependableCoordinate> dependableCoordinates = dependencies.stream()
+                .map(this::createDependendableCoordinateFromDependency)
+                .collect(Collectors.toSet());
 
-        final ProjectBuildingRequest buildingRequest = newResolveArtifactProjectBuildingRequest();
+        ProjectBuildingRequest buildingRequest = newResolveArtifactProjectBuildingRequest();
 
-        for ( Dependency dependency : dependencies )
-        {
-            dependableCoordinates.add( createDependendableCoordinateFromDependency( dependency ) );
-        }
-
-        return resolveDependableCoordinate( buildingRequest, dependableCoordinates, "dependencies" );
+        return resolveDependableCoordinate(buildingRequest, dependableCoordinates, "dependencies");
     }
 
-    private Set<Artifact> resolveDependableCoordinate( final ProjectBuildingRequest buildingRequest,
-                                                        final Collection<DependableCoordinate> dependableCoordinates,
-                                                       final String type )
-            throws DependencyResolverException
-    {
+    private Set<Artifact> resolveDependableCoordinate(
+            final ProjectBuildingRequest buildingRequest,
+            final Collection<DependableCoordinate> dependableCoordinates,
+            final String type)
+            throws DependencyResolverException {
         final TransformableFilter filter = getTransformableFilter();
+
+        this.getLog().debug("Resolving '" + type + "' with following repositories:");
+        for (ArtifactRepository repo : buildingRequest.getRemoteRepositories()) {
+            getLog().debug(repo.getId() + " (" + repo.getUrl() + ")");
+        }
+
 
         final Set<Artifact> results = new HashSet<>();
 
-        this.getLog().debug( "Resolving '" + type + "' with following repositories:" );
-        for ( ArtifactRepository repo : buildingRequest.getRemoteRepositories() )
-        {
-            getLog().debug( repo.getId() + " (" + repo.getUrl() + ")" );
-        }
+        for (DependableCoordinate dependableCoordinate : dependableCoordinates) {
+            final Iterable<ArtifactResult> artifactResults =
+                    getDependencyResolver().resolveDependencies(buildingRequest, dependableCoordinate, filter);
 
-        for ( DependableCoordinate dependableCoordinate : dependableCoordinates )
-        {
-
-            final Iterable<ArtifactResult> artifactResults = getDependencyResolver().resolveDependencies(
-                    buildingRequest, dependableCoordinate, filter );
-
-            for ( final ArtifactResult artifactResult : artifactResults )
-            {
-                results.add( artifactResult.getArtifact() );
+            for (final ArtifactResult artifactResult : artifactResults) {
+                results.add(artifactResult.getArtifact());
             }
         }
 
         return results;
     }
 
-    private TransformableFilter getTransformableFilter()
-    {
-        if ( this.excludeReactor )
-        {
-            return new ExcludeReactorProjectsDependencyFilter( this.reactorProjects, getLog() );
-        }
-        else
-        {
+    private TransformableFilter getTransformableFilter() {
+        if (this.excludeReactor) {
+            return new ExcludeReactorProjectsDependencyFilter(this.reactorProjects, getLog());
+        } else {
             return null;
         }
     }
@@ -190,65 +166,58 @@ public class GoOfflineMojo
      * @return set of resolved plugin artifacts.
      * @throws DependencyResolverException in case of an error while resolving the artifacts.
      */
-    protected Set<Artifact> resolvePluginArtifacts()
-            throws DependencyResolverException
-    {
-        final Set<DependableCoordinate> dependableCoordinates = new HashSet<>();
+    protected Set<Artifact> resolvePluginArtifacts() throws DependencyResolverException {
 
-        final Set<Artifact> plugins = getProject().getPluginArtifacts();
-        final Set<Artifact> reports = getProject().getReportArtifacts();
+        Set<Artifact> plugins = getProject().getPluginArtifacts();
+        Set<Artifact> reports = getProject().getReportArtifacts();
 
-        final Set<Artifact> artifacts = new LinkedHashSet<>();
-        artifacts.addAll( reports );
-        artifacts.addAll( plugins );
+        Set<Artifact> artifacts = new LinkedHashSet<>();
+        artifacts.addAll(reports);
+        artifacts.addAll(plugins);
 
-        final ProjectBuildingRequest buildingRequest = newResolvePluginProjectBuildingRequest();
+        Set<DependableCoordinate> dependableCoordinates = artifacts.stream()
+                .map(this::createDependendableCoordinateFromArtifact)
+                .collect(Collectors.toSet());
 
-        for ( Artifact artifact : artifacts )
-        {
-            dependableCoordinates.add( createDependendableCoordinateFromArtifact( artifact ) );
-        }
+        ProjectBuildingRequest buildingRequest = newResolvePluginProjectBuildingRequest();
 
-        return resolveDependableCoordinate( buildingRequest, dependableCoordinates, "plugins" );
+        return resolveDependableCoordinate(buildingRequest, dependableCoordinates, "plugins");
     }
 
-    private DependableCoordinate createDependendableCoordinateFromArtifact( final Artifact artifact )
-    {
+    private DependableCoordinate createDependendableCoordinateFromArtifact(final Artifact artifact) {
         final DefaultDependableCoordinate result = new DefaultDependableCoordinate();
-        result.setGroupId( artifact.getGroupId() );
-        result.setArtifactId( artifact.getArtifactId() );
-        result.setVersion( artifact.getVersion() );
-        result.setType( artifact.getType() );
-        result.setClassifier( artifact.getClassifier() );
+        result.setGroupId(artifact.getGroupId());
+        result.setArtifactId(artifact.getArtifactId());
+        result.setVersion(artifact.getVersion());
+        result.setType(artifact.getType());
+        result.setClassifier(artifact.getClassifier());
 
         return result;
     }
 
-    private DependableCoordinate createDependendableCoordinateFromDependency( final Dependency dependency )
-    {
+    private DependableCoordinate createDependendableCoordinateFromDependency(final Dependency dependency) {
         final DefaultDependableCoordinate result = new DefaultDependableCoordinate();
-        result.setGroupId( dependency.getGroupId() );
-        result.setArtifactId( dependency.getArtifactId() );
-        result.setVersion( dependency.getVersion() );
-        result.setType( dependency.getType() );
-        result.setClassifier( dependency.getClassifier() );
+        result.setGroupId(dependency.getGroupId());
+        result.setArtifactId(dependency.getArtifactId());
+        result.setVersion(dependency.getVersion());
+        result.setType(dependency.getType());
+        result.setClassifier(dependency.getClassifier());
 
         return result;
     }
 
     @Override
-    protected ArtifactsFilter getMarkedArtifactFilter()
-    {
+    protected ArtifactsFilter getMarkedArtifactFilter() {
         return null;
     }
 
     /**
      * Returns a read-only set of dependencies used for going offline.
+     *
      * @return an immutable set of dependencies used for going offline.
      */
-    protected Set<Artifact> getDependencies()
-    {
-        return unmodifiableSet( dependencies );
+    protected Set<Artifact> getDependencies() {
+        return unmodifiableSet(dependencies);
     }
 
 }

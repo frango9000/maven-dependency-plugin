@@ -55,6 +55,7 @@
            <ignoredDependencies>
              <ignoredDependency>org.apache.maven:maven-project</ignoredDependency>
              <ignoredDependency>org.apache.maven:maven-model</ignoredDependency>
+             <ignoredDependency>org.apache.maven:maven-settings</ignoredDependency>
            </ignoredDependencies>
           </configuration>
         </plugin>
