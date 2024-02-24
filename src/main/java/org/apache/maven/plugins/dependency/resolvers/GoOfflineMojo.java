@@ -109,11 +109,15 @@ public class GoOfflineMojo extends AbstractResolveMojo {
         final Set<Artifact> results = new HashSet<>();
 
         for (DependableCoordinate dependableCoordinate : dependableCoordinates) {
-            final Iterable<ArtifactResult> artifactResults =
-                    getDependencyResolver().resolveDependencies(buildingRequest, dependableCoordinate, filter);
+            try {
+                Iterable<ArtifactResult> artifactResults =
+                        getDependencyResolver().resolveDependencies(buildingRequest, dependableCoordinate, filter);
 
-            for (final ArtifactResult artifactResult : artifactResults) {
-                results.add(artifactResult.getArtifact());
+                for (final ArtifactResult artifactResult : artifactResults) {
+                    results.add(artifactResult.getArtifact());
+                }
+            } catch (DependencyResolverException e) {
+                getLog().warn("Failed to resolve " + type + " for " + dependableCoordinate);
             }
         }
 
