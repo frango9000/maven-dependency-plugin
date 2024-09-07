@@ -30,10 +30,14 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.LegacySupport;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.testing.stubs.ArtifactStub;
 import org.apache.maven.plugins.dependency.AbstractDependencyMojoTestCase;
+import org.apache.maven.plugins.dependency.testUtils.stubs.DependencyProjectStub;
 import org.apache.maven.plugins.dependency.utils.DependencyUtil;
+import org.apache.maven.plugins.dependency.utils.ResolverUtil;
 import org.apache.maven.plugins.dependency.utils.markers.DefaultFileMarkerHandler;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystem;
 
 public class TestCopyDependenciesMojo extends AbstractDependencyMojoTestCase {
 
@@ -44,6 +48,16 @@ public class TestCopyDependenciesMojo extends AbstractDependencyMojoTestCase {
         // required for mojo lookups to work
         super.setUp("copy-dependencies", true, false);
 
+        MavenProject project = new DependencyProjectStub();
+        getContainer().addComponent(project, MavenProject.class.getName());
+
+        MavenSession session = newMavenSession(project);
+        getContainer().addComponent(session, MavenSession.class.getName());
+
+        RepositorySystem repositorySystem = lookup(RepositorySystem.class);
+        ResolverUtil resolverUtil = new ResolverUtil(repositorySystem, () -> session);
+        getContainer().addComponent(resolverUtil, ResolverUtil.class.getName());
+
         File testPom = new File(getBasedir(), "target/test-classes/unit/copy-dependencies-test/plugin-config.xml");
         mojo = (CopyDependenciesMojo) lookupMojo("copy-dependencies", testPom);
         mojo.outputDirectory = new File(this.testDir, "outputDirectory");
@@ -51,10 +65,6 @@ public class TestCopyDependenciesMojo extends AbstractDependencyMojoTestCase {
 
         assertNotNull(mojo);
         assertNotNull(mojo.getProject());
-        MavenProject project = mojo.getProject();
-
-        MavenSession session = newMavenSession(project);
-        setVariableValueToObject(mojo, "session", session);
 
         LegacySupport legacySupport = lookup(LegacySupport.class);
         legacySupport.setSession(session);
@@ -77,14 +87,19 @@ public class TestCopyDependenciesMojo extends AbstractDependencyMojoTestCase {
         assertFalse(handle.isMarkerSet());
     }
 
-    public void testCopyFile() throws MojoExecutionException, IOException {
+    public void testCopyArtifactFile() throws Exception {
+        final Artifact srcArtifact = new ArtifactStub();
+        srcArtifact.setGroupId("org.apache.maven.plugins");
+        srcArtifact.setArtifactId("maven-dependency-plugin-dummy");
+        srcArtifact.setVersion("1.0");
         File src = File.createTempFile("copy", null);
+        srcArtifact.setFile(src);
 
         File dest = new File(mojo.outputDirectory, "toMe.jar");
 
         assertFalse(dest.exists());
 
-        copyFile(mojo, src, dest);
+        copyArtifactFile(srcArtifact, dest);
         assertTrue(dest.exists());
     }
 
@@ -414,6 +429,7 @@ public class TestCopyDependenciesMojo extends AbstractDependencyMojoTestCase {
 
     public void dotestArtifactExceptions() throws MojoFailureException {
         mojo.classifier = "jdk";
+        mojo.failOnMissingClassifierArtifact = true;
         mojo.type = "java-sources";
 
         try {

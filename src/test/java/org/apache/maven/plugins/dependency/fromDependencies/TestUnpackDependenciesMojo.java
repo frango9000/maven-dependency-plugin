@@ -34,10 +34,13 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.dependency.AbstractDependencyMojoTestCase;
 import org.apache.maven.plugins.dependency.testUtils.DependencyArtifactStubFactory;
+import org.apache.maven.plugins.dependency.testUtils.stubs.DependencyProjectStub;
 import org.apache.maven.plugins.dependency.utils.DependencyUtil;
+import org.apache.maven.plugins.dependency.utils.ResolverUtil;
 import org.apache.maven.plugins.dependency.utils.markers.DefaultFileMarkerHandler;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.manager.ArchiverManager;
+import org.eclipse.aether.RepositorySystem;
 
 public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
 
@@ -50,6 +53,16 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
     protected void setUp() throws Exception {
         // required for mojo lookups to work
         super.setUp("unpack-dependencies", true, false);
+
+        MavenProject project = new DependencyProjectStub();
+        getContainer().addComponent(project, MavenProject.class.getName());
+
+        MavenSession session = newMavenSession(project);
+        getContainer().addComponent(session, MavenSession.class.getName());
+
+        RepositorySystem repositorySystem = lookup(RepositorySystem.class);
+        ResolverUtil resolverUtil = new ResolverUtil(repositorySystem, () -> session);
+        getContainer().addComponent(resolverUtil, ResolverUtil.class.getName());
 
         File testPom = new File(getBasedir(), "target/test-classes/unit/unpack-dependencies-test/plugin-config.xml");
         mojo = (UnpackDependenciesMojo) lookupMojo("unpack-dependencies", testPom);
@@ -64,10 +77,6 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
 
         assertNotNull(mojo);
         assertNotNull(mojo.getProject());
-        MavenProject project = mojo.getProject();
-
-        MavenSession session = newMavenSession(project);
-        setVariableValueToObject(mojo, "session", session);
 
         LegacySupport legacySupport = lookup(LegacySupport.class);
         legacySupport.setSession(session);
@@ -124,7 +133,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
 
     public void testMojo() throws Exception {
         mojo.execute();
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(artifact);
         }
     }
@@ -132,7 +141,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
     public void testNoTransitive() throws Exception {
         mojo.excludeTransitive = true;
         mojo.execute();
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getDependencyArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getDependencyArtifacts()) {
             assertUnpacked(artifact);
         }
     }
@@ -143,7 +152,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.excludeTypes = "jar";
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(!artifact.getType().equalsIgnoreCase("jar"), artifact);
         }
     }
@@ -156,7 +165,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
 
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(!artifact.getScope().equals("provided"), artifact);
         }
     }
@@ -169,7 +178,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
 
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(!artifact.getScope().equals("system"), artifact);
         }
     }
@@ -181,7 +190,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.execute();
         ScopeArtifactFilter saf = new ScopeArtifactFilter(mojo.excludeScope);
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(!saf.include(artifact), artifact);
         }
     }
@@ -206,7 +215,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.execute();
         ScopeArtifactFilter saf = new ScopeArtifactFilter(mojo.excludeScope);
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(!saf.include(artifact), artifact);
         }
     }
@@ -245,7 +254,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.useSubDirectoryPerType = true;
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(artifact);
         }
     }
@@ -254,7 +263,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.useSubDirectoryPerArtifact = true;
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(artifact);
         }
     }
@@ -266,7 +275,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.useSubDirectoryPerType = true;
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(artifact);
         }
     }
@@ -276,7 +285,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.stripVersion = true;
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(artifact);
         }
     }
@@ -289,7 +298,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.stripVersion = true;
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(artifact);
         }
     }
@@ -301,7 +310,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.execute();
         ScopeArtifactFilter saf = new ScopeArtifactFilter(mojo.includeScope);
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(saf.include(artifact), artifact);
         }
     }
@@ -314,7 +323,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.execute();
         ScopeArtifactFilter saf = new ScopeArtifactFilter(mojo.includeScope);
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(saf.include(artifact), artifact);
         }
     }
@@ -326,7 +335,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.execute();
         ScopeArtifactFilter saf = new ScopeArtifactFilter(mojo.includeScope);
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(saf.include(artifact), artifact);
         }
     }
@@ -337,7 +346,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.includeScope = "provided";
 
         mojo.execute();
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(Artifact.SCOPE_PROVIDED.equals(artifact.getScope()), artifact);
         }
     }
@@ -349,7 +358,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
 
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(Artifact.SCOPE_SYSTEM.equals(artifact.getScope()), artifact);
         }
     }
@@ -387,7 +396,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         // test - get all direct dependencies and verify that they exist if they
         // do not have a classifier of "one"
         // then delete the file and at the end, verify the folder is empty.
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(!artifact.getArtifactId().equals("one"), artifact);
         }
     }
@@ -398,7 +407,7 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         mojo.excludeGroupIds = "one";
         mojo.execute();
 
-        for (Artifact artifact : (Iterable<Artifact>) mojo.getProject().getArtifacts()) {
+        for (Artifact artifact : mojo.getProject().getArtifacts()) {
             assertUnpacked(!artifact.getGroupId().equals("one"), artifact);
         }
     }
@@ -482,16 +491,13 @@ public class TestUnpackDependenciesMojo extends AbstractDependencyMojoTestCase {
         }
     }
 
-    public void testArtifactNotFound() throws Exception {
-        dotestArtifactExceptions(false, true);
+    public void testArtifactResolutionException() throws MojoFailureException {
+        dotestArtifactExceptions();
     }
 
-    public void testArtifactResolutionException() throws Exception {
-        dotestArtifactExceptions(true, false);
-    }
-
-    public void dotestArtifactExceptions(boolean are, boolean anfe) throws Exception {
+    public void dotestArtifactExceptions() throws MojoFailureException {
         mojo.classifier = "jdk";
+        mojo.failOnMissingClassifierArtifact = true;
         mojo.type = "java-sources";
 
         try {
